@@ -17,10 +17,10 @@ const io = socketIo(server);
 const GameSession = require('./models/GameSession');
 const Player = require('./models/Player');
 
-const numPlayers = null;
-const players = [];
-
-const maxPlayers = 4;
+let numOpponents = null;
+let maxPlayers = null;
+let opponent = null;
+let players = [];
 
 // --------------- ON CONNECTION -----------------------------------------
 
@@ -33,33 +33,63 @@ io.on("connection", socket => {
     let player = new Player(players.length, "human", 0);
     players.push(player);
   }
-  else if (players.length > 0 && players.length < 4 ) {
-    welcomeOtherPlayers(socket);
-    let player = new Player(players.length, "human", 0);
-    players.push(player);
+
+  console.log(`the opponent is a ${opponent}`);
+
+  if (opponent === 'human') {
+    if (players.length > 0 && players.length < maxPlayers ) {
+      welcomeOtherPlayers(socket);
+      let player = new Player(players.length, "human", 0);
+      players.push(player);
+      humanPlayerJoined(socket);
+      console.log(`max players is ${maxPlayers}`)
+    }
+    else {
+      maxPlayersMessage(socket);
+    }
   }
-  else {
-    maxPlayersMessage(socket);
-  }
+
+  getGameOptions(socket);
 
   socket.on("disconnect", () => {
     console.log("Client disconnected");
+    opponent = null;
     players.pop();
   });
 });
+
+// ---------------- ON FUNCTIONS -------------------------------------
+const getGameOptions = socket => {
+  socket.on("GameOptions", data => {
+    // setting number of opponents
+    numOpponents = data.numOpponents;
+    // setting max players
+    maxPlayers = parseInt(numOpponents) + 1;
+    // setting opponent type, Human or Ai
+    opponent = data.opponent;
+    console.log(`Here in the server, waitng for ${numOpponents} human players to join`);
+  });
+}
 
 // ---------------- EMIT FUNCTIONS -----------------------------------
 const welcomePlayerOne = socket => {
   socket.emit("PlayerMessage", 'WELCOME, PLAYER 1!');
 };
-
 const welcomeOtherPlayers = socket => {
   socket.emit("PlayerMessage", `WELCOME, OTHER PLAYER!`);
 };
-
 const maxPlayersMessage = socket => {
   socket.emit("PlayerMessage", 'UNABLE TO JOIN! MAX PLAYERS REACHED! ☹');
 } 
+
+const humanPlayerJoined = socket => {
+  let humansJoined = parseInt(players.length) - 1;
+  let data = {
+    humansJoined, 
+    message: `${humansJoined} human(s) have joined`
+  };
+  socket.emit("HumanPlayerJoined", data);
+}
 
 
 // ------------------------------------------------------------------------
