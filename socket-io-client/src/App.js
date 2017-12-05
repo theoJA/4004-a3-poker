@@ -1,99 +1,98 @@
 import React, { Component } from "react";
-import { getPlayerMessage } from "./components/API";
+import { getPlayerMessage, getHumanPlayerJoined, postGameOptions } from "./components/API";
+import { ModalRenderer } from "./components/GameModals";
 import "./App.css";
 
 class App extends Component {
   constructor() {
     super();
     this.state = {
-      response: false,
-      gameMessage: null,
+      playerNum: 0,
+      playerMessage: false,
       opponent: 'human',
-      numOpponent: '1'
+      numOpponents: '1',
+      aiStrategies: [],
+      humansJoined: 0,
+      preGameStatus: "setting game options"
     };
-
     this._setOpponent = this._setOpponent.bind(this);
     this._setNumOpponents = this._setNumOpponents.bind(this);
     this._gameOptionsSubmit = this._gameOptionsSubmit.bind(this);
+    this._InitPreGameStatus = this._InitPreGameStatus.bind(this);
+    this._refreshWaitingForHumans = this._refreshWaitingForHumans.bind(this);
   }
 
   // Getting welcome message from the server through socket
   componentDidMount() {
     getPlayerMessage(data =>
       this.setState({
-        response: data
+        playerMessage: data
       })
     );
   }
 
-// game options form functions
+// game options modal functions
   _setOpponent(event) {
-    this.setState({ opponent: event.target.value });
+    this.setState({ opponent: event.target.value});
   }
   _setNumOpponents(event) {
-    this.setState({ numOpponent: event.target.value });
+    this.setState({ numOpponents: event.target.value });
   }
+
   _gameOptionsSubmit() {
-    alert(`You will be going against ${this.state.numOpponent} ${this.state.opponent} player(s)`);
+    let { opponent, numOpponents } = this.state;
+    // send game options to the server
+    postGameOptions({opponent, numOpponents});
+    // display either the human or AI modal here
+    this.setState({ playerNum: 1, preGameStatus: "waiting for human players" }); 
   }
-// -----------------------------------
 
-// game options modal
-  _renderGameOptions() {
-    if (this.state.response === "WELCOME, PLAYER 1!") {
-      return (
-        <div>
-          <button className="uk-button uk-button-primary uk-button-default" style={{margin: 20}} uk-toggle="target: #my-id" type="button">Set Game</button>
-          
-          <div id="my-id" uk-modal="true">
-            <div className="uk-modal-dialog uk-modal-body">
-              <h2 className="uk-modal-title">Set the following options</h2>
-
-              <div>
-                <form id="game-options">
-                  <fieldset className="uk-fieldset">
-                  
-                    <legend className="uk-legend">Opponent</legend>
-                    <div className="uk-margin">
-                      <select className="uk-select" onChange={this._setOpponent}>
-                        <option>Human</option>
-                        <option>AI</option>
-                      </select>
-                    </div>
-
-                    <legend className="uk-legend">Number of Opponents</legend>
-                    <div className="uk-margin">
-                      <select className="uk-select" onChange={this._setNumOpponents}>
-                        <option>1</option>
-                        <option>2</option>
-                        <option>3</option>
-                      </select>
-                    </div>
-
-                  </fieldset>
-                </form>
-              </div>
-
-              <button className="uk-button uk-button-danger uk-modal-close" type="submit" onClick={this._gameOptionsSubmit}>
-                Start Game
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
+  _refreshWaitingForHumans() {
+    console.log("refreshing")
+    getHumanPlayerJoined(data => 
+      
+      this.setState({
+        humansJoined: data.humansJoined
+      })
+    );
   }
-// ------------------------------------------
 
+  _InitPreGameStatus() {
+    this.setState({ preGameStatus: "setting game options", opponent: 'human', numOpponents: '1' });
+  }
+
+
+  _renderGameOptions() { 
+    return (
+      <ModalRenderer 
+        refreshWaitingForHumans={this._refreshWaitingForHumans}
+        humansJoined={this.state.humansJoined}
+        numOpponents={this.state.numOpponents}
+        preGameStatus={this.state.preGameStatus}
+        setOpponent={this._setOpponent}
+        setNumOpponents={this._setNumOpponents}
+        gameOptionsSubmit={this._gameOptionsSubmit}
+        initPreGameStatus={this._InitPreGameStatus}
+      />
+    );
+  }
+
+
+
+_pageRenderer() {
+  if (this.state.playerMessage === "WELCOME, PLAYER 1!") {
+    return (this._renderGameOptions());
+  }
+}
 
   render() {
-    const { response } = this.state;
+    const { playerMessage } = this.state;
     return (
       <div className="App">
         <div className="App-header">
-          {response ? <p>{response}</p> : <p>Loading...</p>}
+          {playerMessage ? <p>{playerMessage}</p> : <p>LOADING...</p>}
         </div>
-        <div>{this._renderGameOptions()}</div>
+        <div>{this._pageRenderer()}</div>
       </div>
     );
   }
