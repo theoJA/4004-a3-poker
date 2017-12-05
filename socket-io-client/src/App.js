@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { getPlayerMessage, getHumanPlayerJoined, postGameOptions } from "./components/API";
+import { getPlayerMessage, getHumanPlayerJoined, postGameOptions, postAiStrategies } from "./components/API";
 import { ModalRenderer } from "./components/GameModals";
 import "./App.css";
 
@@ -9,9 +9,9 @@ class App extends Component {
     this.state = {
       playerNum: 0,
       playerMessage: false,
-      opponent: 'human',
+      opponent: 'Human',
       numOpponents: '1',
-      aiStrategies: [],
+      aiStrategies: {},
       humansJoined: 0,
       preGameStatus: "setting game options"
     };
@@ -20,6 +20,8 @@ class App extends Component {
     this._gameOptionsSubmit = this._gameOptionsSubmit.bind(this);
     this._InitPreGameStatus = this._InitPreGameStatus.bind(this);
     this._refreshWaitingForHumans = this._refreshWaitingForHumans.bind(this);
+    this._setAiStrategy = this._setAiStrategy.bind(this);
+    this._postAiStrategies = this._postAiStrategies.bind(this);
   }
 
   // Getting welcome message from the server through socket
@@ -44,10 +46,32 @@ class App extends Component {
     // send game options to the server
     postGameOptions({opponent, numOpponents});
     // display either the human or AI modal here
-    this.setState({ playerNum: 1, preGameStatus: "waiting for human players" }); 
+    if (opponent === 'Human') {
+      this.setState({ playerNum: 1, preGameStatus: "waiting for human players" }); 
+    }
+    else if (opponent === 'AI') {
+      this.setState({ playerNum: 1, preGameStatus: "setting up ai players" }); 
+    }
   }
 
-  
+// ai modal controls 
+  _setAiStrategy(event) {
+    let { aiStrategies } = this.state;
+    let tempAiStrategies = aiStrategies;
+    tempAiStrategies[event.target.id] = event.target.value;
+    this.setState({
+      aiStrategies: tempAiStrategies
+    }, () => {
+      console.log(aiStrategies);
+    });
+  }
+
+  _postAiStrategies() {
+    postAiStrategies(this.state.aiStrategies);
+  }
+// ----------------------------
+
+
 // NOT REALLY WORKING!---------
   _refreshWaitingForHumans() {
     console.log("refreshing")
@@ -61,13 +85,20 @@ class App extends Component {
 
 
   _InitPreGameStatus() {
-    this.setState({ preGameStatus: "setting game options", opponent: 'human', numOpponents: '1' });
+    this.setState({ 
+      preGameStatus: "setting game options", 
+      opponent: 'Human', 
+      numOpponents: '1',
+      aiStrategies: {},
+    });
   }
 
 
   _renderGameOptions() { 
     return (
       <ModalRenderer 
+        postAiStrategies={this._postAiStrategies}
+        setAiStrategy={this._setAiStrategy}
         refreshWaitingForHumans={this._refreshWaitingForHumans}
         humansJoined={this.state.humansJoined}
         numOpponents={this.state.numOpponents}
