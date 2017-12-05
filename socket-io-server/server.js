@@ -20,27 +20,29 @@ const Player = require('./models/Player');
 let numOpponents = null;
 let maxPlayers = null;
 let opponent = null;
-let players = [];
+let humanPlayers = [];
+let aiPlayers = [];
+let players = []; // human players + ai players
 
-// --------------- ON CONNECTION -----------------------------------------
 
+// --------------- CONNECTION -----------------------------------------
 io.on("connection", socket => {
 
   console.log("New player connected");
 
-  if (players.length === 0) {
+  // adding player 1, the main player
+  if (humanPlayers.length === 0) {
     welcomePlayerOne(socket);
-    let player = new Player(players.length, "human", 0);
-    players.push(player);
+    let player = new Player("You", "Human", "None");
+    humanPlayers.push(player);
   }
 
-  console.log(`the opponent is a ${opponent}`);
-
-  if (opponent === 'human') {
-    if (players.length > 0 && players.length < maxPlayers ) {
+  // adding other human players
+  if (opponent === 'Human') {
+    if (humanPlayers.length > 0 && humanPlayers.length < maxPlayers ) {
       welcomeOtherPlayers(socket);
-      let player = new Player(players.length, "human", 0);
-      players.push(player);
+      let player = new Player(humanPlayers.length, "Human", "None");
+      humanPlayers.push(player);
       humanPlayerJoined(socket);
       console.log(`max players is ${maxPlayers}`)
     }
@@ -49,27 +51,57 @@ io.on("connection", socket => {
     }
   }
 
-  getGameOptions(socket);
+  getGameOptions(socket);   // whenever player 1 has set what opponent to fight
+  getAiStrategies(socket);  // whenever player 1 has set ai strategies, if ai is the opponent
 
   socket.on("disconnect", () => {
     console.log("Client disconnected");
     opponent = null;
-    players.pop();
+    humanPlayers.pop();
   });
 });
+// -----------------------------------------------------------------------
+
 
 // ---------------- ON FUNCTIONS -------------------------------------
 const getGameOptions = socket => {
   socket.on("GameOptions", data => {
+    // resetting the aiPlayers and players
+    aiPlayers = [];
+    players = [];
     // setting number of opponents
     numOpponents = data.numOpponents;
     // setting max players
     maxPlayers = parseInt(numOpponents) + 1;
     // setting opponent type, Human or Ai
     opponent = data.opponent;
-    console.log(`Here in the server, waitng for ${numOpponents} human players to join`);
+    if (opponent === 'Human') {
+      console.log(`Here in the server, waitng for ${numOpponents} human players to join`);
+    }
+    else if (opponent === 'AI') {
+      console.log(`Here in the server, waitng for ${numOpponents} AI players to be set up`);
+    }
   });
 }
+
+const getAiStrategies = socket => {
+  socket.on("PostAiStrategies", data => {
+    // extracting keys from data obj
+    let tempAiKeys = Object.keys(data);
+    let tempPlayers = [];
+    // pushing each ai into the ai array
+    tempAiKeys.map(ai => {
+      let aiPlayer = new Player(ai, "AI", data[ai]);
+      aiPlayers.push(aiPlayer);
+    });
+    // combining ai array with human array, ai first
+    tempPlayers = aiPlayers.concat(humanPlayers);
+    players = tempPlayers
+    console.log(players);
+  });
+}
+// -------------------------------------------------------------------------------
+
 
 // ---------------- EMIT FUNCTIONS -----------------------------------
 const welcomePlayerOne = socket => {
@@ -83,14 +115,14 @@ const maxPlayersMessage = socket => {
 } 
 
 const humanPlayerJoined = socket => {
-  let humansJoined = parseInt(players.length) - 1;
+  let humansJoined = parseInt(humanPlayers.length) - 1;
   let data = {
     humansJoined, 
     message: `${humansJoined} human(s) have joined`
   };
   socket.emit("HumanPlayerJoined", data);
 }
-
-
 // ------------------------------------------------------------------------
+
+
 server.listen(port, () => console.log(`Listening on port ${port}`));
