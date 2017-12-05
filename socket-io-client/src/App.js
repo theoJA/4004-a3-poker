@@ -47,15 +47,18 @@ class App extends Component {
     this.setState({ playerNum: 1, preGameStatus: "waiting for human players" }); 
   }
 
+  
+// NOT REALLY WORKING!---------
   _refreshWaitingForHumans() {
     console.log("refreshing")
     getHumanPlayerJoined(data => 
-      
       this.setState({
         humansJoined: data.humansJoined
       })
     );
   }
+// ----------------------------
+
 
   _InitPreGameStatus() {
     this.setState({ preGameStatus: "setting game options", opponent: 'human', numOpponents: '1' });
