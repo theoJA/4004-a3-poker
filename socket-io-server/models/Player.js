@@ -1,8 +1,9 @@
 module.exports = class Player {
 
-  constructor(id, type, strategy) {
+  constructor(id, type, hand, strategy) {
     this.id = id;
     this.type = type;
+    this.hand = hand;
     this.strategy = strategy;
   }
 
@@ -11,6 +12,9 @@ module.exports = class Player {
   }
   getType() {
     return this.type;
+  }
+  getHand() {
+    return this.hand;
   }
   getStrategy() {
     return this.strategy;
@@ -22,6 +26,9 @@ module.exports = class Player {
   }
   setType(type) {
     this.type = type;
+  }
+  setHand(hand) {
+    this.hand = hand;
   }
   setStrategy(strategy) {
     this.strategy = strategy;
