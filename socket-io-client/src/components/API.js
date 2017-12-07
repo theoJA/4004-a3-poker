@@ -16,6 +16,10 @@ function getHumanPlayerJoined(cb) {
 }
 // -------------------------------------
 
+function getPlayersForGame(cb) {
+  socket.on("PlayersForGame", data => cb(data));
+}
+
 function postAiStrategies(strategyObj) {
   socket.emit("PostAiStrategies", strategyObj);
 }
@@ -27,6 +31,7 @@ function postGameOptions({opponent, numOpponents}) {
 export {
   getPlayerMessage,
   getHumanPlayerJoined,
+  getPlayersForGame,
   postGameOptions,
   postAiStrategies
 };
