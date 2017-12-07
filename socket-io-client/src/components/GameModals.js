@@ -4,7 +4,7 @@ function ModalRenderer(props) {
 
   let aiDropdowns = [];
 
-  switch (props.preGameStatus) {
+  switch (props.gameStatus) {
 
     case "setting game options": {
       return (
@@ -110,9 +110,66 @@ function ModalRenderer(props) {
 
     default: return;
   }
-   
 }
+
+
+function GameRenderer(props) {
+
+  // holds the ui for each player
+  let playersUi = [];
+
+  // holds the player objects
+  let playersInGame = props.playersInGame;
+
+  playersInGame.forEach((player,index) => {
+    if (player.type === "AI") {
+      playersUi.push(
+        <div key={player.id} className="uk-text-center">
+          <div className="uk-button uk-button-danger disabled">{player.id}</div>
+          
+          <div className="uk-flex uk-flex-around">
+          Cards
+          </div>      
+          
+        </div>
+      );
+    }
+    else if (player.type === "Human") {
+      playersUi.push(
+        <div key={player.id} className="uk-text-center">
+          <div className="uk-button uk-button-primary disabled">{player.id}</div>
+          
+          <div className="uk-flex uk-flex-around">
+          Cards
+          </div>      
+          
+          <div>
+            <button className="uk-button uk-button-secondary uk-margin-top uk-margin-bottom uk-margin-left">Discard</button>
+            <button className="uk-button uk-button-secondary uk-margin-top uk-margin-bottom uk-margin-left">Hold</button>
+          </div>
+        </div>
+      );
+    }
+  })
+
+  return (
+    <div>
+      <h2 className="uk-modal-title">The game begins</h2>  
+      {playersUi && (
+        <div className="uk-flex uk-flex-center uk-margin-right">
+        {
+          playersUi.map(player => {
+            return player;
+          })
+        }
+        </div>
+      )}
+    </div>
+  )
+}
+
 
 export {
   ModalRenderer,
+  GameRenderer
 };
