@@ -1,37 +1,41 @@
-class Card {
+module.exports = class Card {
   
-  constructor(card) {
-    this.card = {
-      suite: '',
-      rank: '',
-      face: ''
-    }
+  constructor(suite,rank,name,face,numValue) {
+    this.suite = suite;
+    this.rank = rank;
+    this.name = name;
+    this.face = face;
+    this.numValue = numValue;
   }
 
   _getSuite() {
-    return this.card.suite;
+    return this.suite;
   }
-
   _getRank() {
-    return this.card.rank;
+    return this.rank;
+  }
+  _getName() {
+    return this.name;
+  }
+  _getFace() {
+    return this.face;
+  }
+  _getNumValue() {
+    return this.numValue;
   }
 
-  _getFace() {
-    return this.card.face;
-  }
 
   _setSuite(suite) {
-    this.card.suite = suite;
+    this.suite = suite;
   }
-
   _setRank(rank) {
-    this.card.rank = rank;
+    this.rank = rank;
   }
-
+  _setName(name) {
+    this.name = name;
+  }
   _setFace(face) {
-    this.card.face = face;
+    this.face = face;
   }
 
 }
-
-export default Card;
