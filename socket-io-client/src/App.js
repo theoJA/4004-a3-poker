@@ -1,6 +1,6 @@
 import React, { Component } from "react";
-import { getPlayerMessage, getHumanPlayerJoined, postGameOptions, postAiStrategies } from "./components/API";
-import { ModalRenderer } from "./components/GameModals";
+import { getPlayerMessage, getHumanPlayerJoined, getPlayersForGame, postGameOptions, postAiStrategies } from "./components/API";
+import { ModalRenderer, GameRenderer } from "./components/GameModals";
 import "./App.css";
 
 class App extends Component {
@@ -13,7 +13,8 @@ class App extends Component {
       numOpponents: '1',
       aiStrategies: {},
       humansJoined: 0,
-      preGameStatus: "setting game options"
+      gameStatus: "setting game options",
+      players: {}
     };
     this._setOpponent = this._setOpponent.bind(this);
     this._setNumOpponents = this._setNumOpponents.bind(this);
@@ -47,10 +48,10 @@ class App extends Component {
     postGameOptions({opponent, numOpponents});
     // display either the human or AI modal here
     if (opponent === 'Human') {
-      this.setState({ playerNum: 1, preGameStatus: "waiting for human players" }); 
+      this.setState({ playerNum: 1, gameStatus: "waiting for human players" }); 
     }
     else if (opponent === 'AI') {
-      this.setState({ playerNum: 1, preGameStatus: "setting up ai players" }); 
+      this.setState({ playerNum: 1, gameStatus: "setting up ai players" }); 
     }
   }
 
@@ -66,10 +67,20 @@ class App extends Component {
     });
   }
 
-  _postAiStrategies() {
-    postAiStrategies(this.state.aiStrategies);
+  async _postAiStrategies() {
+    // posting the strategies to the server
+    await postAiStrategies(this.state.aiStrategies);
+    // getting the players in the right order from the server
+    getPlayersForGame(data =>
+      this.setState({
+        players: data,
+        gameStatus: "game started"
+      })
+    );
   }
 // ----------------------------
+
+
 
 
 // NOT REALLY WORKING!---------
@@ -86,7 +97,7 @@ class App extends Component {
 
   _InitPreGameStatus() {
     this.setState({ 
-      preGameStatus: "setting game options", 
+      gameStatus: "setting game options", 
       opponent: 'Human', 
       numOpponents: '1',
       aiStrategies: {},
@@ -96,13 +107,13 @@ class App extends Component {
 
   _renderGameOptions() { 
     return (
-      <ModalRenderer 
+      <ModalRenderer
         postAiStrategies={this._postAiStrategies}
         setAiStrategy={this._setAiStrategy}
         refreshWaitingForHumans={this._refreshWaitingForHumans}
         humansJoined={this.state.humansJoined}
         numOpponents={this.state.numOpponents}
-        preGameStatus={this.state.preGameStatus}
+        gameStatus={this.state.gameStatus}
         setOpponent={this._setOpponent}
         setNumOpponents={this._setNumOpponents}
         gameOptionsSubmit={this._gameOptionsSubmit}
@@ -111,11 +122,23 @@ class App extends Component {
     );
   }
 
-
+_renderStartGame() {
+  return (
+    <GameRenderer 
+      playersInGame={this.state.players}
+    />
+  );
+}
 
 _pageRenderer() {
   if (this.state.playerMessage === "WELCOME, PLAYER 1!") {
-    return (this._renderGameOptions());
+    
+    if (this.state.gameStatus !== "game started") {
+      return (this._renderGameOptions());
+    }
+    else {
+      return (this._renderStartGame());
+    }
   }
 }
 
