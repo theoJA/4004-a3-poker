@@ -1,0 +1,33 @@
+div#facedown-card {
+  text-align: center;
+}
+
+div#facedown-card p {
+  font-weight: bold;
+  padding: 3px;
+  margin: 3px;
+  color: #000;
+  background-color: rgb(221, 70, 43);
+  border-color: #000;
+  border-width: 1px
+}
+
+
+div#faceup-card {
+  text-align: center;
+}
+
+div#faceup-card p {
+  font-weight: bold;
+  padding: 3px;
+  margin: 3px;
+  color: #000;
+  background-color: rgb(189, 189, 189);
+  border-color: #000;
+  border-width: 1px
+}
+
+div#card-container {
+  margin-left: 10px;
+  margin-right: 10px;
+}

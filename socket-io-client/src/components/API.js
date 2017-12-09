@@ -17,11 +17,25 @@ function getHumanPlayerJoined(cb) {
 // -------------------------------------
 
 function getPlayersForGame(cb) {
+  console.log('in the api')
   socket.on("PlayersForGame", data => cb(data));
 }
 
-function postAiStrategies(strategyObj) {
-  socket.emit("PostAiStrategies", strategyObj);
+function getHumanPlayersForGame(cb) {
+  socket.on("HumanPlayersForGame", data => cb(data));
+}
+
+function getNewCards(cb) {
+  socket.on("GetNewCards", data => cb(data));
+}
+
+
+function exchangeCards(amount) {
+  socket.emit("ExchangeCards", amount);
+}
+
+function postAiStrategies([strategyObj, riggedHands]) {
+  socket.emit("PostAiStrategies", [strategyObj, riggedHands]);
 }
 
 function postGameOptions({opponent, numOpponents}) {
@@ -32,6 +46,9 @@ export {
   getPlayerMessage,
   getHumanPlayerJoined,
   getPlayersForGame,
+  getHumanPlayersForGame,
   postGameOptions,
-  postAiStrategies
+  postAiStrategies,
+  exchangeCards,
+  getNewCards
 };
